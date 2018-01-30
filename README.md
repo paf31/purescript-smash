@@ -2,7 +2,7 @@
 
 An extensible effect system built out of comonads and Day convolution.
 
-- [Example](tests/Main.purs)
+- [Example](test/Main.purs)
 - [Module Documentation](generated-docs/Data/Smash.md)
 
 ### Introduction
