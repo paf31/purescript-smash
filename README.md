@@ -5,7 +5,15 @@ Extensible coeffects using comonads and Day convolution.
 - [Example](test/Main.purs)
 - [Module Documentation](generated-docs/Data/Smash.md)
 
-### Introduction
+### Getting Started
+
+```
+bower update
+pulp build
+pulp test
+```
+
+### Motivation
 
 One way to create a system for extensible algebraic effects is to use a free monad
 over a coproduct of functors describing the effects we care about. The [`purescript-run` library](https://github.com/natefaubion/purescript-run) by Nathan Faubion takes this one step further and uses rows to cleverly describe the functors we are working with. Row polymorphism does the right thing when it comes to composing programs with different effects.
@@ -17,8 +25,3 @@ First, instead of starting with actions and then defining their interpreters, le
 (Note that the Day convolution of cofree comonads is also a cofree comonad, and the monad constructed from a cofree comonad is a free monad, so we don't lose any expressiveness).
 
 Seen another way, this approach lets us use the same techniques as the free-monad-of-coproducts approach, but avoiding some of the overhead of `Free` in certain cases, by using more efficient interpreters, quotienting by certain program equivalences.
-
-### Building
-
-This project uses `psc-package`. You can try it out by cloning this repo and running
-`pulp build` or `psc-package build`.
