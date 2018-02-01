@@ -1,21 +1,5 @@
 ## Module Data.Smash
 
-#### `FProxy`
-
-``` purescript
-data FProxy (f :: Type -> Type)
-  = FProxy
-```
-
-A value-level representation of a functor, so that we can use
-some mono-kinded compiler-provided machinery like `RowCons`.
-
-##### Instances
-``` purescript
-(Extend f, IsSymbol l, RowCons l (FProxy f) r1 r, ExtendSmash rl r1) => ExtendSmash (Cons l (FProxy f) rl) r
-(Comonad f, IsSymbol l, RowCons l (FProxy f) r1 r, ComonadSmash rl r1) => ComonadSmash (Cons l (FProxy f) rl) r
-```
-
 #### `Smash`
 
 ``` purescript
@@ -63,36 +47,38 @@ singleton :: forall l r f a. IsSymbol l => RowCons l (FProxy f) () r => SProxy l
 Construct a value of type `Smash (l :: FProxy f)` by lifting a value
 of type `f a`.
 
-#### `smash`
+#### `cons`
 
 ``` purescript
-smash :: forall l f r1 r2 a b c. IsSymbol l => RowCons l (FProxy f) r1 r2 => SProxy l -> (a -> b -> c) -> f a -> Smash r1 b -> Smash r2 c
+cons :: forall l f r1 r2 a b c. IsSymbol l => RowCons l (FProxy f) r1 r2 => SProxy l -> (a -> b -> c) -> f a -> Smash r1 b -> Smash r2 c
 ```
 
 Add an interpreter of type `f a` to form a larger `Smash` product of
 interpreters.
-
-#### `lowerSmash`
-
-``` purescript
-lowerSmash :: forall l f r rl rest a. IsSymbol l => Functor f => RowCons l (FProxy f) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Smash r a -> f a
-```
-
-Project out the interpreter at the specified label, ignoring the future
-state of the other interpreters.
-
-#### `Uncons`
-
-``` purescript
-data Uncons f r a x
-  = Uncons (f x) (Smash r (x -> a))
-```
 
 #### `uncons`
 
 ``` purescript
 uncons :: forall l f r rest a. IsSymbol l => RowCons l (FProxy f) rest r => SProxy l -> Smash r a -> Exists (Uncons f rest a)
 ```
+
+#### `lower`
+
+``` purescript
+lower :: forall l f r rl rest a. IsSymbol l => Functor f => RowCons l (FProxy f) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Smash r a -> f a
+```
+
+Project out the interpreter at the specified label, ignoring the future
+state of the other interpreters.
+
+#### `smash`
+
+``` purescript
+smash :: forall interpreters results proxies rl. RowToList interpreters rl => Smashed rl interpreters proxies results => {  | interpreters } -> Smash proxies ({  | results })
+```
+
+Smash together a record of interpreters to get an interpreters which
+returns records.
 
 #### `cosmash`
 
@@ -109,6 +95,44 @@ cosmash_ :: forall l f r rest rl. IsSymbol l => RowCons l (FProxy f) rest r => F
 ```
 
 A simpler variant of `cosmash` for when you don't care about the result.
+
+#### `FProxy`
+
+``` purescript
+data FProxy (f :: Type -> Type)
+  = FProxy
+```
+
+A value-level representation of a functor, so that we can use
+some mono-kinded compiler-provided machinery like `RowCons`.
+
+##### Instances
+``` purescript
+(Extend f, IsSymbol l, RowCons l (FProxy f) r1 r, ExtendSmash rl r1) => ExtendSmash (Cons l (FProxy f) rl) r
+(Comonad f, IsSymbol l, RowCons l (FProxy f) r1 r, ComonadSmash rl r1) => ComonadSmash (Cons l (FProxy f) rl) r
+```
+
+#### `Uncons`
+
+``` purescript
+data Uncons f r a x
+  = Uncons (f x) (Smash r (x -> a))
+```
+
+The result of extracting a single interpreter from a `Smash` product.
+
+#### `Smashed`
+
+``` purescript
+class Smashed rl interpreters proxies results | rl -> interpreters proxies results where
+  smashRL :: RLProxy rl -> {  | interpreters } -> Smash proxies ({  | results })
+```
+
+##### Instances
+``` purescript
+Smashed Nil () () ()
+(IsSymbol l, RowLacks l results_, RowLacks l interpreters_, RowLacks l proxies_, RowCons l (f a) interpreters_ interpreters, RowCons l (FProxy f) proxies_ proxies, RowCons l a results_ results, Smashed rl interpreters_ proxies_ results_) => Smashed (Cons l (f a) rl) interpreters proxies results
+```
 
 #### `ExtendSmash`
 

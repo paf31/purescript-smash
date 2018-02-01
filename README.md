@@ -1,6 +1,6 @@
 ## purescript-smash
 
-An extensible effect system built out of comonads and Day convolution.
+Extensible coeffects using comonads and Day convolution.
 
 - [Example](tests/Main.purs)
 - [Module Documentation](generated-docs/Data/Smash.md)

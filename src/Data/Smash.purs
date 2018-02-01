@@ -1,14 +1,17 @@
 module Data.Smash
-  ( FProxy(..)
-  , Smash
+  ( Smash
   , empty
   , singleton
-  , smash
-  , lowerSmash
-  , Uncons(..)
+  , cons
   , uncons
+  , lower
+  , smash
   , cosmash
   , cosmash_
+  , FProxy(..)
+  , Uncons(..)
+  , class Smashed
+  , smashRL
   , class ExtendSmash
   , duplicateSmashRL
   , class ComonadSmash
@@ -21,10 +24,18 @@ import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, duplicate)
 import Data.Exists (Exists, mkExists, runExists)
 import Data.Functor.Pairing.Co (Co, co)
-import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
+import Data.Record (delete, get, insert)
 import Data.Record.Unsafe (unsafeGet, unsafeSet)
-import Type.Row (class RowToList, Cons, Nil, RLProxy(RLProxy), kind RowList)
+import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
+import Type.Row (class RowLacks, class RowToList, Cons, Nil, RLProxy(RLProxy))
 import Unsafe.Coerce (unsafeCoerce)
+
+-- | A value-level representation of a functor, so that we can use
+-- | some mono-kinded compiler-provided machinery like `RowCons`.
+data FProxy (f :: Type -> Type) = FProxy
+
+-- | The result of extracting a single interpreter from a `Smash` product.
+data Uncons f r a x = Uncons (f x) (Smash r (x -> a))
 
 -- | Smash a bunch of functors together with Day convolution
 -- |
@@ -43,10 +54,6 @@ import Unsafe.Coerce (unsafeCoerce)
 -- | ```
 -- | which we represent using a record.
 data Smash (r :: # Type) (a :: Type)
-
--- | A value-level representation of a functor, so that we can use
--- | some mono-kinded compiler-provided machinery like `RowCons`.
-data FProxy (f :: Type -> Type) = FProxy
 
 instance functorSmash :: Functor (Smash r) where
   map f s = unsafeCoerce
@@ -76,11 +83,11 @@ singleton
   => SProxy l
   -> f a
   -> Smash r a
-singleton l fa = smash l const fa (empty unit)
+singleton l fa = cons l const fa (empty unit)
 
 -- | Add an interpreter of type `f a` to form a larger `Smash` product of
 -- | interpreters.
-smash
+cons
   :: forall l f r1 r2 a b c
    . IsSymbol l
   => RowCons l (FProxy f) r1 r2
@@ -89,14 +96,24 @@ smash
   -> f a
   -> Smash r1 b
   -> Smash r2 c
-smash l f fa s = unsafeCoerce
+cons l f fa s = unsafeCoerce
   { parts: unsafeSet (reflectSymbol l) fa (unsafeCoerce s).parts
   , get: \r -> f (unsafeGet (reflectSymbol l) r) ((unsafeCoerce s).get r)
   }
 
+-- | Smash together a record of interpreters to get an interpreters which
+-- | returns records.
+smash
+  :: forall interpreters results proxies rl
+   . RowToList interpreters rl
+  => Smashed rl interpreters proxies results
+  => Record interpreters
+  -> Smash proxies (Record results)
+smash = smashRL (RLProxy :: RLProxy rl)
+
 -- | Project out the interpreter at the specified label, ignoring the future
 -- | state of the other interpreters.
-lowerSmash
+lower
   :: forall l f r rl rest a
    . IsSymbol l
   => Functor f
@@ -106,9 +123,7 @@ lowerSmash
   => SProxy l
   -> Smash r a
   -> f a
-lowerSmash l s = runExists (\(Uncons here rest) -> extract rest <$> here) (uncons l s)
-
-data Uncons f r a x = Uncons (f x) (Smash r (x -> a))
+lower l s = runExists (\(Uncons here rest) -> extract rest <$> here) (uncons l s)
 
 uncons
   :: forall l f r rest a
@@ -138,7 +153,7 @@ cosmash
   => SProxy l
   -> (forall x. f (a -> x) -> x)
   -> Co (Smash r) a
-cosmash l f = co (f <<< lowerSmash l)
+cosmash l f = co (f <<< lower l)
 
 -- | A simpler variant of `cosmash` for when you don't care about the result.
 cosmash_
@@ -152,6 +167,31 @@ cosmash_
   -> (forall x. f x -> x)
   -> Co (Smash r) Unit
 cosmash_ l f = cosmash l \ff -> f ((_ $ unit) <$> ff)
+
+class Smashed rl interpreters proxies results | rl -> interpreters proxies results where
+  smashRL :: RLProxy rl -> Record interpreters -> Smash proxies (Record results)
+
+instance smashedNil :: Smashed Nil () () () where
+  smashRL _ _ = empty {}
+
+instance smashedCons
+  :: ( IsSymbol l
+     , RowLacks l results_
+     , RowLacks l interpreters_
+     , RowLacks l proxies_
+     , RowCons l (f a) interpreters_ interpreters
+     , RowCons l (FProxy f) proxies_ proxies
+     , RowCons l a results_ results
+     , Smashed rl interpreters_ proxies_ results_
+     )
+  => Smashed (Cons l (f a) rl) interpreters proxies results where
+  smashRL _ interpreters =
+      cons l
+           (insert l :: a -> Record results_ -> Record results)
+           (get l interpreters)
+           (smashRL (RLProxy :: RLProxy rl) (delete l interpreters))
+    where
+      l = SProxy :: SProxy l
 
 class ExtendSmash rl r | rl -> r where
   duplicateSmashRL :: forall a. RLProxy rl -> Smash r a -> Smash r (Smash r a)
@@ -178,8 +218,8 @@ instance extendSmashCons
 
     go :: forall a x. Uncons f r1 a x -> Smash r (Smash r a)
     go (Uncons part rest) =
-      smash l
-            (smash l (flip id))
+      cons l
+            (cons l (flip id))
             (duplicate part)
             (duplicateSmashRL (RLProxy :: RLProxy rl) rest)
 
