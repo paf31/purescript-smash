@@ -13,15 +13,26 @@ pulp build
 pulp test
 ```
 
-### Motivation
+### Introduction
 
-One way to create a system for extensible algebraic effects is to use a free monad
-over a coproduct of functors describing the effects we care about. The [`purescript-run` library](https://github.com/natefaubion/purescript-run) by Nathan Faubion takes this one step further and uses rows to cleverly describe the functors we are working with. Row polymorphism does the right thing when it comes to composing programs with different effects.
+Given a symmetric monoidal category `(𝒞, ⊗, I)`, we can combine any non-zero number of objects in `𝒞` using the repeated application of the tensor product `⊗`. We can extend this to combinations of zero objects using unit object `I`.
 
-This library uses a related but slightly different approach, nicking the row polymorphism trick from `purescript-run` and applying it to a different type of functor composition - Day convolution.
+Given a _row_ of objects in the category `𝒞`, we can combine the objects in the labels, and use the labels as pointers to the original objects inside the combination.
 
-First, instead of starting with actions and then defining their interpreters, let's start with the interpreters, and construct the actions from them. Monads don't compose nicely, hence the trick using coproducts of the _underlying_ functors described above. However, comonads _do_ compose in a nice, interesting way, using Day convolution. So the trick will be to describe our interpreter using a Day convolution of several comonads, and then to _construct_ the monad for our actions from that comonad (using Edward Kmett's monads-from-comonads constructor `Co`).
+We already have several examples of this:
 
-(Note that the Day convolution of cofree comonads is also a cofree comonad, and the monad constructed from a cofree comonad is a free monad, so we don't lose any expressiveness).
+- Records are n-ary tuples, and the labels can be used to construct polymorphic _lenses_ which identify the type of each label as part of the product type.
+- Variants (e.g. [`purescript-variant`](https://github.com/natefaubion/purescript-variant)) are n-ary sums, and the labels can be used to construct polymorphic _prisms_ which identify the type of each label as a summand.
+- Higher-order variants (e.g. as used in [`purescript-run`](https://github.com/natefaubion/purescript-run)) are n-ary functor coproducts. We could use the labels to construct "functor coproduct optics".
 
-Seen another way, this approach lets us use the same techniques as the free-monad-of-coproducts approach, but avoiding some of the overhead of `Free` in certain cases, by using more efficient interpreters, quotienting by certain program equivalences.
+This library constructs a data type `Smash` in the same way out of the symmetric monoidal category `(★ → ★, Day, Identity)` of functors and Day convolution.
+
+We can use this data type to model extensible _coeffects_, in much the same way that `purescript-run` uses higher-order variants to model extensible effects. First, note that Day convolution preserves comonadic structure, so `Smash r` is a comonad whenever the functors appearing in the row `r` are themselves comonads. So we can construct an interpreter for a combination of coeffects by combining the appropriate comonads.
+
+Next, we can _construct_ a monad of actions from our comonad, using Edward Kmett's monads-from-comonads constructor `Co`.
+
+By starting with a comonadic _interpreter_ instead of a monadic language, we can freely compose any coeffects, since unlike monads, comonads do compose nicely using Day convolution. However, this is not a full replacement for monad transformers and the MTL, since we cannot construct all monads in this way. There is no way to model IO, for example, or even exceptions in the style of `Either`.
+
+### Future Work
+
+Just like we can derive lenses and prisms from the labels in a record or variant type, we can derive optics which focus on individual comonads inside our Day convolution of comonads. I would like to add support for these polymorphic "comonad optics" here.
