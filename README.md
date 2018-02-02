@@ -15,9 +15,9 @@ pulp test
 
 ### Introduction
 
-Given a symmetric monoidal category `(𝒞, ⊗, I)`, we can combine any non-zero number of objects in `𝒞` using the repeated application of the tensor product `⊗`. We can extend this to combinations of zero objects using unit object `I`.
+Given a monoidal category `(𝒞, ⊗, I)`, we can combine any non-zero number of objects in `𝒞` using the repeated application of the tensor product `⊗`. We can extend this to combinations of zero objects using unit object `I`.
 
-Given a _row_ of objects in the category `𝒞`, we can combine the objects in the labels, and use the labels as pointers to the original objects inside the combination.
+Given a _row_ of objects in the category `𝒞`, we can combine the objects in the labels, and (in most cases) use the labels as "pointers" to the original objects inside the combination.
 
 We already have several examples of this:
 
