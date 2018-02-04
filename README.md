@@ -33,6 +33,4 @@ Next, we can _construct_ a monad of actions from our comonad, using Edward Kmett
 
 By starting with a comonadic _interpreter_ instead of a monadic language, we can freely compose any coeffects, since unlike monads, comonads do compose nicely using Day convolution. However, this is not a full replacement for monad transformers and the MTL, since we cannot construct all monads in this way. There is no way to model IO, for example, or even exceptions in the style of `Either`.
 
-### Future Work
-
-Just like we can derive lenses and prisms from the labels in a record or variant type, we can derive optics which focus on individual comonads inside our Day convolution of comonads. I would like to add support for these polymorphic "comonad optics" here.
+Just like we can derive lenses and prisms from the labels in a record or variant type, we can derive optics which focus on individual comonads inside our Day convolution of comonads. The `Data.Smash.Lens` module implements this idea.
