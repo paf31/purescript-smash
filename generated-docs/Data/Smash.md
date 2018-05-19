@@ -41,16 +41,16 @@ Construct a value of type `Smash ()` by lifting a value of type `a`.
 #### `singleton`
 
 ``` purescript
-singleton :: forall l r f a. IsSymbol l => RowCons l (FProxy f) () r => SProxy l -> f a -> Smash r a
+singleton :: forall l r f a. IsSymbol l => RowCons l (Proxy2 f) () r => SProxy l -> f a -> Smash r a
 ```
 
-Construct a value of type `Smash (l :: FProxy f)` by lifting a value
+Construct a value of type `Smash (l :: Proxy2 f)` by lifting a value
 of type `f a`.
 
 #### `cons`
 
 ``` purescript
-cons :: forall l f r1 r2 a b c. IsSymbol l => RowCons l (FProxy f) r1 r2 => SProxy l -> (a -> b -> c) -> f a -> Smash r1 b -> Smash r2 c
+cons :: forall l f r1 r2 a b c. IsSymbol l => RowCons l (Proxy2 f) r1 r2 => SProxy l -> (a -> b -> c) -> f a -> Smash r1 b -> Smash r2 c
 ```
 
 Add an interpreter of type `f a` to form a larger `Smash` product of
@@ -59,13 +59,13 @@ interpreters.
 #### `uncons`
 
 ``` purescript
-uncons :: forall l f r rest a. IsSymbol l => RowCons l (FProxy f) rest r => SProxy l -> Smash r a -> Exists (Uncons f rest a)
+uncons :: forall l f r rest a. IsSymbol l => RowCons l (Proxy2 f) rest r => SProxy l -> Smash r a -> Exists (Uncons f rest a)
 ```
 
 #### `lower`
 
 ``` purescript
-lower :: forall l f r rl rest a. IsSymbol l => Functor f => RowCons l (FProxy f) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Smash r a -> f a
+lower :: forall l f r rl rest a. IsSymbol l => Functor f => RowCons l (Proxy2 f) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Smash r a -> f a
 ```
 
 Project out the interpreter at the specified label, ignoring the future
@@ -83,7 +83,7 @@ returns records.
 #### `cosmash`
 
 ``` purescript
-cosmash :: forall l f r rest rl a. IsSymbol l => RowCons l (FProxy f) rest r => Functor f => RowToList rest rl => ComonadSmash rl rest => SProxy l -> (forall x. f (a -> x) -> x) -> Co (Smash r) a
+cosmash :: forall l f r rest rl a. IsSymbol l => RowCons l (Proxy2 f) rest r => Functor f => RowToList rest rl => ComonadSmash rl rest => SProxy l -> (forall x. f (a -> x) -> x) -> Co (Smash r) a
 ```
 
 A helper function for constructing actions in a `Co` monad.
@@ -91,26 +91,10 @@ A helper function for constructing actions in a `Co` monad.
 #### `cosmash_`
 
 ``` purescript
-cosmash_ :: forall l f r rest rl. IsSymbol l => RowCons l (FProxy f) rest r => Functor f => RowToList rest rl => ComonadSmash rl rest => SProxy l -> (forall x. f x -> x) -> Co (Smash r) Unit
+cosmash_ :: forall l f r rest rl. IsSymbol l => RowCons l (Proxy2 f) rest r => Functor f => RowToList rest rl => ComonadSmash rl rest => SProxy l -> (forall x. f x -> x) -> Co (Smash r) Unit
 ```
 
 A simpler variant of `cosmash` for when you don't care about the result.
-
-#### `FProxy`
-
-``` purescript
-data FProxy (f :: Type -> Type)
-  = FProxy
-```
-
-A value-level representation of a functor, so that we can use
-some mono-kinded compiler-provided machinery like `RowCons`.
-
-##### Instances
-``` purescript
-(Extend f, IsSymbol l, RowCons l (FProxy f) r1 r, ExtendSmash rl r1) => ExtendSmash (Cons l (FProxy f) rl) r
-(Comonad f, IsSymbol l, RowCons l (FProxy f) r1 r, ComonadSmash rl r1) => ComonadSmash (Cons l (FProxy f) rl) r
-```
 
 #### `Uncons`
 
@@ -131,7 +115,7 @@ class Smashed rl interpreters proxies results | rl -> interpreters proxies resul
 ##### Instances
 ``` purescript
 Smashed Nil () () ()
-(IsSymbol l, RowLacks l results_, RowLacks l interpreters_, RowLacks l proxies_, RowCons l (f a) interpreters_ interpreters, RowCons l (FProxy f) proxies_ proxies, RowCons l a results_ results, Smashed rl interpreters_ proxies_ results_) => Smashed (Cons l (f a) rl) interpreters proxies results
+(IsSymbol l, RowLacks l results_, RowLacks l interpreters_, RowLacks l proxies_, RowCons l (f a) interpreters_ interpreters, RowCons l (Proxy2 f) proxies_ proxies, RowCons l a results_ results, Smashed rl interpreters_ proxies_ results_) => Smashed (Cons l (f a) rl) interpreters proxies results
 ```
 
 #### `ExtendSmash`
@@ -144,7 +128,7 @@ class ExtendSmash rl r | rl -> r where
 ##### Instances
 ``` purescript
 ExtendSmash Nil ()
-(Extend f, IsSymbol l, RowCons l (FProxy f) r1 r, ExtendSmash rl r1) => ExtendSmash (Cons l (FProxy f) rl) r
+(Extend f, IsSymbol l, RowCons l (Proxy2 f) r1 r, ExtendSmash rl r1) => ExtendSmash (Cons l (Proxy2 f) rl) r
 ```
 
 #### `ComonadSmash`
@@ -157,7 +141,7 @@ class (ExtendSmash rl r) <= ComonadSmash rl r | rl -> r where
 ##### Instances
 ``` purescript
 ComonadSmash Nil ()
-(Comonad f, IsSymbol l, RowCons l (FProxy f) r1 r, ComonadSmash rl r1) => ComonadSmash (Cons l (FProxy f) rl) r
+(Comonad f, IsSymbol l, RowCons l (Proxy2 f) r1 r, ComonadSmash rl r1) => ComonadSmash (Cons l (Proxy2 f) rl) r
 ```
 
 

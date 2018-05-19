@@ -12,13 +12,14 @@ import Control.Comonad.Store.Class (class ComonadStore, pos, peek)
 import Data.Functor.Pairing.Co (Co)
 import Data.Smash as S
 import Data.Symbol (class IsSymbol, SProxy(..))
+import Type.Proxy (Proxy2)
 import Type.Row (class RowToList)
 
 getWith
   :: forall l w r rl rest a
    . ComonadStore a w
   => IsSymbol l
-  => RowCons l (S.FProxy w) rest r
+  => RowCons l (Proxy2 w) rest r
   => RowToList rest rl
   => S.ComonadSmash rl rest
   => SProxy l
@@ -30,14 +31,14 @@ get
    . ComonadStore a w
   => RowToList r rl
   => S.ComonadSmash rl r
-  => Co (S.Smash (store :: S.FProxy w | r)) a
+  => Co (S.Smash (store :: Proxy2 w | r)) a
 get = getWith (SProxy :: SProxy "store")
 
 putWith
   :: forall l w r rl rest a
    . ComonadStore a w
   => IsSymbol l
-  => RowCons l (S.FProxy w) rest r
+  => RowCons l (Proxy2 w) rest r
   => RowToList rest rl
   => S.ComonadSmash rl rest
   => SProxy l
@@ -51,5 +52,5 @@ put
   => RowToList r rl
   => S.ComonadSmash rl r
   => a
-  -> Co (S.Smash (store :: S.FProxy w | r)) Unit
+  -> Co (S.Smash (store :: Proxy2 w | r)) Unit
 put = putWith (SProxy :: SProxy "store")

@@ -13,10 +13,11 @@ import Data.Smash as S
 import Data.Smash.Env (ask)
 import Data.Smash.Store (get, put)
 import Data.Smash.Traced (tell)
+import Type.Proxy (Proxy2)
 
-script :: Co (S.Smash ( store :: S.FProxy (Store Int)
-                      , traced :: S.FProxy (Traced (Array String))
-                      , env :: S.FProxy (Env Boolean)
+script :: Co (S.Smash ( store :: Proxy2 (Store Int)
+                      , traced :: Proxy2 (Traced (Array String))
+                      , env :: Proxy2 (Env Boolean)
                       )) Unit
 script = do
   increment <- ask
