@@ -3,7 +3,7 @@
 #### `label`
 
 ``` purescript
-label :: forall l s t a b rest. IsSymbol l => Functor b => RowCons l (FProxy a) rest s => RowCons l (FProxy b) rest t => SProxy l -> Lens (Smash s) (Smash t) a b
+label :: forall l s t a b rest. IsSymbol l => Functor b => RowCons l (Proxy2 a) rest s => RowCons l (Proxy2 b) rest t => SProxy l -> Lens (Smash s) (Smash t) a b
 ```
 
 A `Lens` which focuses on the specified label in a `Smash` product.
