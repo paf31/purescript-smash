@@ -9,7 +9,7 @@ get :: forall w r rl a. ComonadStore a w => RowToList r rl => ComonadSmash rl r 
 #### `getWith`
 
 ``` purescript
-getWith :: forall l w r rl rest a. ComonadStore a w => IsSymbol l => RowCons l (Proxy2 w) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Co (Smash r) a
+getWith :: forall l w r rl rest a. ComonadStore a w => IsSymbol l => Cons l (Proxy2 w) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Co (Smash r) a
 ```
 
 #### `put`
@@ -21,7 +21,7 @@ put :: forall w r rl a. ComonadStore a w => RowToList r rl => ComonadSmash rl r 
 #### `putWith`
 
 ``` purescript
-putWith :: forall l w r rl rest a. ComonadStore a w => IsSymbol l => RowCons l (Proxy2 w) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> a -> Co (Smash r) Unit
+putWith :: forall l w r rl rest a. ComonadStore a w => IsSymbol l => Cons l (Proxy2 w) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> a -> Co (Smash r) Unit
 ```
 
 

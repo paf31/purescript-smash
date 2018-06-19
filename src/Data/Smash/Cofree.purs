@@ -10,6 +10,7 @@ import Control.Comonad.Cofree (Cofree, tail)
 import Data.Functor.Pairing.Co (Co, runCo)
 import Data.Smash as S
 import Data.Symbol (class IsSymbol, SProxy(..))
+import Prim.Row as Row
 import Type.Proxy (Proxy2)
 import Type.Row (class RowToList)
 
@@ -17,7 +18,7 @@ liftWith
   :: forall l f r rl rest a
    . IsSymbol l
   => Functor f
-  => RowCons l (Proxy2 (Cofree f)) rest r
+  => Row.Cons l (Proxy2 (Cofree f)) rest r
   => RowToList rest rl
   => S.ComonadSmash rl rest
   => SProxy l

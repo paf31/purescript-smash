@@ -9,6 +9,7 @@ import Control.Comonad.Traced.Class (class ComonadTraced, track)
 import Data.Functor.Pairing.Co (Co)
 import Data.Smash as S
 import Data.Symbol (class IsSymbol, SProxy(..))
+import Prim.Row as Row
 import Type.Proxy (Proxy2)
 import Type.Row (class RowToList)
 
@@ -16,7 +17,7 @@ tellWith
   :: forall l w r rl rest a
    . ComonadTraced a w
   => IsSymbol l
-  => RowCons l (Proxy2 w) rest r
+  => Row.Cons l (Proxy2 w) rest r
   => RowToList rest rl
   => S.ComonadSmash rl rest
   => SProxy l

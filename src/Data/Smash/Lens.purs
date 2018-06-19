@@ -16,6 +16,7 @@ import Data.Functor.Pairing.Co (Co, co, runCo)
 import Data.Identity (Identity)
 import Data.Smash (Smash, Uncons(..), cons, uncons)
 import Data.Symbol (class IsSymbol, SProxy)
+import Prim.Row as Row
 import Type.Proxy (Proxy2)
 
 -- | A `Lens` which focuses on the specified label in a `Smash` product.
@@ -23,13 +24,13 @@ label
   :: forall l s t a b rest
    . IsSymbol l
   => Functor b
-  => RowCons l (Proxy2 a) rest s
-  => RowCons l (Proxy2 b) rest t
+  => Row.Cons l (Proxy2 a) rest s
+  => Row.Cons l (Proxy2 b) rest t
   => SProxy l
   -> Lens (Smash s) (Smash t) a b
 label l = lens \s -> runExists go (uncons l s) where
   go :: forall x y. Uncons a rest x y -> (a ⊗ Hom b (Smash t)) x
-  go (Uncons a sf) = day (#) a (hom \b -> cons l id b sf)
+  go (Uncons a sf) = day (#) a (hom \b -> cons l identity b sf)
 
 -- | Lower to a comonad identified by an optic.
 -- |

@@ -9,7 +9,7 @@ lift :: forall f r rl a. RowToList r rl => Functor f => ComonadSmash rl r => Co 
 #### `liftWith`
 
 ``` purescript
-liftWith :: forall l f r rl rest a. IsSymbol l => Functor f => RowCons l (Proxy2 (Cofree f)) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Co f a -> Co (Smash r) a
+liftWith :: forall l f r rl rest a. IsSymbol l => Functor f => Cons l (Proxy2 (Cofree f)) rest r => RowToList rest rl => ComonadSmash rl rest => SProxy l -> Co f a -> Co (Smash r) a
 ```
 
 

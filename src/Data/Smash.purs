@@ -23,11 +23,12 @@ import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, duplicate)
 import Data.Exists (Exists, mkExists, runExists)
 import Data.Functor.Pairing.Co (Co, co)
-import Data.Record (delete, get, insert)
-import Data.Record.Unsafe (unsafeGet, unsafeSet)
 import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
+import Prim.Row as Row
+import Record (delete, get, insert)
+import Record.Unsafe (unsafeGet, unsafeSet)
 import Type.Proxy (Proxy2)
-import Type.Row (class RowLacks, class RowToList, Cons, Nil, RLProxy(RLProxy))
+import Type.Row (class RowToList, Cons, Nil, RLProxy(RLProxy))
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | The result of extracting a single interpreter from a `Smash` product.
@@ -75,7 +76,7 @@ empty a = unsafeCoerce
 singleton
   :: forall l r f a
    . IsSymbol l
-  => RowCons l (Proxy2 f) () r
+  => Row.Cons l (Proxy2 f) () r
   => SProxy l
   -> f a
   -> Smash r a
@@ -86,7 +87,7 @@ singleton l fa = cons l const fa (empty unit)
 cons
   :: forall l f r1 r2 a b c
    . IsSymbol l
-  => RowCons l (Proxy2 f) r1 r2
+  => Row.Cons l (Proxy2 f) r1 r2
   => SProxy l
   -> (a -> b -> c)
   -> f a
@@ -113,7 +114,7 @@ lower
   :: forall l f r rl rest a
    . IsSymbol l
   => Functor f
-  => RowCons l (Proxy2 f) rest r
+  => Row.Cons l (Proxy2 f) rest r
   => RowToList rest rl
   => ComonadSmash rl rest
   => SProxy l
@@ -124,7 +125,7 @@ lower l s = runExists (\(Uncons here rest) -> extract rest <$> here) (uncons l s
 uncons
   :: forall l f r rest a
    . IsSymbol l
-  => RowCons l (Proxy2 f) rest r
+  => Row.Cons l (Proxy2 f) rest r
   => SProxy l
   -> Smash r a
   -> Exists (Uncons f rest a)
@@ -142,7 +143,7 @@ uncons l s = mkExists (Uncons here rest) where
 cosmash
   :: forall l f r rest rl a
    . IsSymbol l
-  => RowCons l (Proxy2 f) rest r
+  => Row.Cons l (Proxy2 f) rest r
   => Functor f
   => RowToList rest rl
   => ComonadSmash rl rest
@@ -155,7 +156,7 @@ cosmash l f = co (f <<< lower l)
 cosmash_
   :: forall l f r rest rl
    . IsSymbol l
-  => RowCons l (Proxy2 f) rest r
+  => Row.Cons l (Proxy2 f) rest r
   => Functor f
   => RowToList rest rl
   => ComonadSmash rl rest
@@ -172,12 +173,12 @@ instance smashedNil :: Smashed Nil () () () where
 
 instance smashedCons
   :: ( IsSymbol l
-     , RowLacks l results_
-     , RowLacks l interpreters_
-     , RowLacks l proxies_
-     , RowCons l (f a) interpreters_ interpreters
-     , RowCons l (Proxy2 f) proxies_ proxies
-     , RowCons l a results_ results
+     , Row.Lacks l results_
+     , Row.Lacks l interpreters_
+     , Row.Lacks l proxies_
+     , Row.Cons l (f a) interpreters_ interpreters
+     , Row.Cons l (Proxy2 f) proxies_ proxies
+     , Row.Cons l a results_ results
      , Smashed rl interpreters_ proxies_ results_
      )
   => Smashed (Cons l (f a) rl) interpreters proxies results where
@@ -204,7 +205,7 @@ instance comonadSmashNil :: ComonadSmash Nil () where
 instance extendSmashCons
   :: ( Extend f
      , IsSymbol l
-     , RowCons l (Proxy2 f) r1 r
+     , Row.Cons l (Proxy2 f) r1 r
      , ExtendSmash rl r1
      )
   => ExtendSmash (Cons l (Proxy2 f) rl) r where
@@ -215,14 +216,14 @@ instance extendSmashCons
     go :: forall a x. Uncons f r1 a x -> Smash r (Smash r a)
     go (Uncons part rest) =
       cons l
-            (cons l (flip id))
+            (cons l (flip identity))
             (duplicate part)
             (duplicateSmashRL (RLProxy :: RLProxy rl) rest)
 
 instance comonadSmashCons
   :: ( Comonad f
      , IsSymbol l
-     , RowCons l (Proxy2 f) r1 r
+     , Row.Cons l (Proxy2 f) r1 r
      , ComonadSmash rl r1
      )
   => ComonadSmash (Cons l (Proxy2 f) rl) r where
