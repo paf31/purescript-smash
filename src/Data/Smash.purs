@@ -28,7 +28,7 @@ import Prim.Row as Row
 import Record (delete, get, insert)
 import Record.Unsafe (unsafeGet, unsafeSet)
 import Type.Proxy (Proxy2)
-import Type.Row (class RowToList, Cons, Nil, RLProxy(RLProxy))
+import Type.RowList (class RowToList, Cons, Nil, RLProxy(RLProxy))
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | The result of extracting a single interpreter from a `Smash` product.
