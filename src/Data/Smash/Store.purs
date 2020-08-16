@@ -14,7 +14,7 @@ import Data.Smash as S
 import Data.Symbol (class IsSymbol, SProxy(..))
 import Prim.Row as Row
 import Type.Proxy (Proxy2)
-import Type.Row (class RowToList)
+import Type.RowList (class RowToList)
 
 getWith
   :: forall l w r rl rest a
